@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Synchronization</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .sidebar .nav-link {
+            color: #495057;
+        }
+        .sidebar .nav-link:hover {
+            color: #007bff;
+        }
+        .main {
+            margin-left: 250px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <h3>OS Concepts</h3>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/cpu_scheduling">CPU Scheduling</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/deadlock">Deadlock Handling</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/resource_allocation">Resource Allocation</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/memory_management">Memory Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/file_systems">File Systems</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/synchronization">Process Synchronization</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/io_management">I/O Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/processes_threads">Processes and Threads</a>
+            </li>
+        </ul>
+    </nav>
+    <main class="main">
+        <h1>Process Synchronization</h1>
+        <div class="row">
+            <div class="col-md-12">
+                <ul class="nav nav-tabs" id="syncTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="semaphore-tab" data-bs-toggle="tab" data-bs-target="#semaphore" type="button" role="tab">Semaphores</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="mutex-tab" data-bs-toggle="tab" data-bs-target="#mutex" type="button" role="tab">Mutex</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="producer-consumer-tab" data-bs-toggle="tab" data-bs-target="#producer-consumer" type="button" role="tab">Producer-Consumer</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="dining-tab" data-bs-toggle="tab" data-bs-target="#dining" type="button" role="tab">Dining Philosophers</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="readers-writers-tab" data-bs-toggle="tab" data-bs-target="#readers-writers" type="button" role="tab">Readers-Writers</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="syncTabsContent">
+                    <div class="tab-pane fade show active" id="semaphore" role="tabpanel">
+                        <h3>Semaphores</h3>
+                        <form id="semaphore-form">
+                            <div class="mb-3">
+                                <label for="semaphore-name" class="form-label">Semaphore Name</label>
+                                <input type="text" class="form-control" id="semaphore-name" value="semaphore1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="semaphore-value" class="form-label">Initial Value</label>
+                                <input type="number" class="form-control" id="semaphore-value" value="1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="semaphore-process" class="form-label">Process ID</label>
+                                <input type="text" class="form-control" id="semaphore-process" value="P1">
+                            </div>
+                            <button type="button" class="btn btn-warning" id="semaphore-wait">Wait (P)</button>
+                            <button type="button" class="btn btn-success" id="semaphore-signal">Signal (V)</button>
+                        </form>
+                        <div id="semaphore-results" class="mt-3"></div>
+                    </div>
+                    <div class="tab-pane fade" id="mutex" role="tabpanel">
+                        <h3>Mutex</h3>
+                        <form id="mutex-form">
+                            <div class="mb-3">
+                                <label for="mutex-name" class="form-label">Mutex Name</label>
+                                <input type="text" class="form-control" id="mutex-name" value="mutex1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="mutex-process" class="form-label">Process ID</label>
+                                <input type="text" class="form-control" id="mutex-process" value="P1">
+                            </div>
+                            <button type="button" class="btn btn-warning" id="mutex-lock">Lock</button>
+                            <button type="button" class="btn btn-success" id="mutex-unlock">Unlock</button>
+                        </form>
+                        <div id="mutex-results" class="mt-3"></div>
+                    </div>
+                    <div class="tab-pane fade" id="producer-consumer" role="tabpanel">
+                        <h3>Producer-Consumer Problem</h3>
+                        <form id="pc-form">
+                            <div class="mb-3">
+                                <label for="buffer-size" class="form-label">Buffer Size</label>
+                                <input type="number" class="form-control" id="buffer-size" value="5">
+                            </div>
+                            <div class="mb-3">
+                                <label for="pc-process" class="form-label">Process ID</label>
+                                <input type="text" class="form-control" id="pc-process" value="Producer0">
+                            </div>
+                            <div class="mb-3" id="item-group">
+                                <label for="item" class="form-label">Item to Produce</label>
+                                <input type="text" class="form-control" id="item" value="item1">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="produce">Produce</button>
+                            <button type="button" class="btn btn-secondary" id="consume">Consume</button>
+                        </form>
+                        <div id="pc-results" class="mt-3"></div>
+                    </div>
+                    <div class="tab-pane fade" id="dining" role="tabpanel">
+                        <h3>Dining Philosophers Problem</h3>
+                        <form id="dining-form">
+                            <div class="mb-3">
+                                <label for="num-philosophers" class="form-label">Number of Philosophers</label>
+                                <input type="number" class="form-control" id="num-philosophers" value="5">
+                            </div>
+                            <div class="mb-3">
+                                <label for="philosopher-id" class="form-label">Philosopher ID</label>
+                                <input type="number" class="form-control" id="philosopher-id" value="0">
+                            </div>
+                            <button type="button" class="btn btn-warning" id="pickup-chopsticks">Pick Up Chopsticks</button>
+                            <button type="button" class="btn btn-success" id="putdown-chopsticks">Put Down Chopsticks</button>
+                        </form>
+                        <div id="dining-results" class="mt-3"></div>
+                    </div>
+                    <div class="tab-pane fade" id="readers-writers" role="tabpanel">
+                        <h3>Readers-Writers Problem</h3>
+                        <form id="rw-form">
+                            <div class="mb-3">
+                                <label for="rw-process" class="form-label">Process ID</label>
+                                <input type="text" class="form-control" id="rw-process" value="Reader0">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="start-read">Start Read</button>
+                            <button type="button" class="btn btn-secondary" id="end-read">End Read</button>
+                            <button type="button" class="btn btn-warning" id="start-write">Start Write</button>
+                            <button type="button" class="btn btn-success" id="end-write">End Write</button>
+                        </form>
+                        <div id="rw-results" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Semaphore
+        document.getElementById('semaphore-wait').addEventListener('click', function() {
+            const semaphoreName = document.getElementById('semaphore-name').value;
+            const initialValue = parseInt(document.getElementById('semaphore-value').value);
+            const processId = document.getElementById('semaphore-process').value;
+
+            fetch('/synchronization/semaphore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    operation: 'wait',
+                    semaphore_name: semaphoreName,
+                    initial_value: initialValue,
+                    process_id: processId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('semaphore-results').innerHTML = `<p><strong>Wait Result:</strong> ${result.success ? 'Success' : 'Blocked'}</p><p><strong>Value:</strong> ${result.value}</p><p><strong>Waiting:</strong> ${result.waiting}</p>`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('semaphore-signal').addEventListener('click', function() {
+            const semaphoreName = document.getElementById('semaphore-name').value;
+            const initialValue = parseInt(document.getElementById('semaphore-value').value);
+
+            fetch('/synchronization/semaphore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    operation: 'signal',
+                    semaphore_name: semaphoreName,
+                    initial_value: initialValue
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('semaphore-results').innerHTML = `<p><strong>Signal Result:</strong></p><p><strong>Value:</strong> ${result.value}</p><p><strong>Unblocked:</strong> ${result.unblocked || 'None'}</p>`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        // Mutex
+        document.getElementById('mutex-lock').addEventListener('click', function() {
+            const mutexName = document.getElementById('mutex-name').value;
+            const processId = document.getElementById('mutex-process').value;
+
+            fetch('/synchronization/mutex', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    operation: 'lock',
+                    mutex_name: mutexName,
+                    process_id: processId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('mutex-results').innerHTML = `<p><strong>Lock Result:</strong> ${result.success ? 'Success' : 'Blocked'}</p><p><strong>Locked:</strong> ${result.locked}</p><p><strong>Owner:</strong> ${result.owner || 'None'}</p><p><strong>Waiting:</strong> ${result.waiting}</p>`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('mutex-unlock').addEventListener('click', function() {
+            const mutexName = document.getElementById('mutex-name').value;
+
+            fetch('/synchronization/mutex', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    operation: 'unlock',
+                    mutex_name: mutexName
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('mutex-results').innerHTML = `<p><strong>Unlock Result:</strong></p><p><strong>Locked:</strong> ${result.locked}</p><p><strong>Unblocked:</strong> ${result.unblocked || 'None'}</p>`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        // Producer-Consumer
+        document.getElementById('produce').addEventListener('click', function() {
+            const bufferSize = parseInt(document.getElementById('buffer-size').value);
+            const processId = document.getElementById('pc-process').value;
+            const item = document.getElementById('item').value;
+
+            fetch('/synchronization/producer_consumer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    operation: 'produce',
+                    buffer_size: bufferSize,
+                    process_id: processId,
+                    item: item
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayPCResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('consume').addEventListener('click', function() {
+            const bufferSize = parseInt(document.getElementById('buffer-size').value);
+            const processId = document.getElementById('pc-process').value;
+
+            fetch('/synchronization/producer_consumer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    operation: 'consume',
+                    buffer_size: bufferSize,
+                    process_id: processId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayPCResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        function displayPCResults(result) {
+            let html = `<p><strong>Success:</strong> ${result.success ? 'Yes' : 'No'}</p>`;
+            html += '<h5>Steps:</h5><ul>';
+            result.steps.forEach(step => {
+                html += `<li>${step}</li>`;
+            });
+            html += '</ul>';
+            html += `<p><strong>Buffer:</strong> [${result.buffer.join(', ')}]</p>`;
+            document.getElementById('pc-results').innerHTML = html;
+        }
+
+        // Dining Philosophers
+        document.getElementById('pickup-chopsticks').addEventListener('click', function() {
+            const numPhilosophers = parseInt(document.getElementById('num-philosophers').value);
+            const philosopherId = parseInt(document.getElementById('philosopher-id').value);
+
+            fetch('/synchronization/dining_philosophers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    operation: 'pickup',
+                    num_philosophers: numPhilosophers,
+                    philosopher_id: philosopherId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayDiningResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('putdown-chopsticks').addEventListener('click', function() {
+            const numPhilosophers = parseInt(document.getElementById('num-philosophers').value);
+            const philosopherId = parseInt(document.getElementById('philosopher-id').value);
+
+            fetch('/synchronization/dining_philosophers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    operation: 'putdown',
+                    num_philosophers: numPhilosophers,
+                    philosopher_id: philosopherId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayDiningResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        function displayDiningResults(result) {
+            let html = `<p><strong>Success:</strong> ${result.success ? 'Yes' : 'No'}</p>`;
+            html += '<h5>Steps:</h5><ul>';
+            result.steps.forEach(step => {
+                html += `<li>${step}</li>`;
+            });
+            html += '</ul>';
+            html += `<p><strong>States:</strong> [${result.states.join(', ')}]</p>`;
+            document.getElementById('dining-results').innerHTML = html;
+        }
+
+        // Readers-Writers
+        document.getElementById('start-read').addEventListener('click', function() {
+            const processId = document.getElementById('rw-process').value;
+
+            fetch('/synchronization/readers_writers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    operation: 'start_read',
+                    process_id: processId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayRWResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('end-read').addEventListener('click', function() {
+            const processId = document.getElementById('rw-process').value;
+
+            fetch('/synchronization/readers_writers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    operation: 'end_read',
+                    process_id: processId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayRWResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('start-write').addEventListener('click', function() {
+            const processId = document.getElementById('rw-process').value;
+
+            fetch('/synchronization/readers_writers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    operation: 'start_write',
+                    process_id: processId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayRWResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('end-write').addEventListener('click', function() {
+            const processId = document.getElementById('rw-process').value;
+
+            fetch('/synchronization/readers_writers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    operation: 'end_write',
+                    process_id: processId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayRWResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        function displayRWResults(result) {
+            let html = `<p><strong>Success:</strong> ${result.success ? 'Yes' : 'No'}</p>`;
+            html += '<h5>Steps:</h5><ul>';
+            result.steps.forEach(step => {
+                html += `<li>${step}</li>`;
+            });
+            html += '</ul>';
+            html += `<p><strong>Read Count:</strong> ${result.read_count}</p>`;
+            html += `<p><strong>Writer Active:</strong> ${result.writer_active}</p>`;
+            document.getElementById('rw-results').innerHTML = html;
+        }
+    </script>
+</body>
+</html>

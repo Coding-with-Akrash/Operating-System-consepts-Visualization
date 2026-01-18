@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processes and Threads</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .sidebar .nav-link {
+            color: #495057;
+        }
+        .sidebar .nav-link:hover {
+            color: #007bff;
+        }
+        .main {
+            margin-left: 250px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <h3>OS Concepts</h3>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/cpu_scheduling">CPU Scheduling</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/deadlock">Deadlock Handling</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/resource_allocation">Resource Allocation</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/memory_management">Memory Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/file_systems">File Systems</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/synchronization">Process Synchronization</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/io_management">I/O Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/processes_threads">Processes and Threads</a>
+            </li>
+        </ul>
+    </nav>
+    <main class="main">
+        <h1>Processes and Threads</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Process Simulation</h3>
+                <form id="process-form">
+                    <div id="processes">
+                        <div class="process-input mb-3">
+                            <h6>Process 1</h6>
+                            <div class="row">
+                                <div class="col">
+                                    <label class="form-label">PID</label>
+                                    <input type="text" class="form-control" name="pid" value="P1">
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Arrival Time</label>
+                                    <input type="number" class="form-control" name="arrival_time" value="0">
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Burst Time</label>
+                                    <input type="number" class="form-control" name="burst_time" value="10">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="add-process-pt">Add Process</button>
+                    <div class="mb-3">
+                        <label for="max-time" class="form-label">Max Simulation Time</label>
+                        <input type="number" class="form-control" id="max-time" value="100">
+                    </div>
+                    <button type="button" class="btn btn-primary" id="simulate-processes">Simulate Processes</button>
+                </form>
+                <h3>Thread Simulation</h3>
+                <form id="thread-form">
+                    <div class="mb-3">
+                        <label for="thread-model" class="form-label">Thread Model</label>
+                        <select class="form-select" id="thread-model">
+                            <option value="USER_LEVEL">User-Level</option>
+                            <option value="KERNEL_LEVEL">Kernel-Level</option>
+                            <option value="HYBRID">Hybrid</option>
+                        </select>
+                    </div>
+                    <div id="threads">
+                        <div class="thread-input mb-3">
+                            <h6>Thread 1</h6>
+                            <div class="row">
+                                <div class="col">
+                                    <label class="form-label">TID</label>
+                                    <input type="text" class="form-control" name="tid" value="T1">
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">PID</label>
+                                    <input type="text" class="form-control" name="pid" value="P1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="add-thread">Add Thread</button>
+                    <button type="button" class="btn btn-primary" id="simulate-threads">Simulate Threads</button>
+                </form>
+                <h3>IPC</h3>
+                <form id="ipc-form">
+                    <div class="mb-3">
+                        <label for="from-pid" class="form-label">From PID</label>
+                        <input type="text" class="form-control" id="from-pid" value="P1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="to-pid" class="form-label">To PID</label>
+                        <input type="text" class="form-control" id="to-pid" value="P2">
+                    </div>
+                    <div class="mb-3">
+                        <label for="ipc-message" class="form-label">Message</label>
+                        <input type="text" class="form-control" id="ipc-message" value="Hello">
+                    </div>
+                    <button type="button" class="btn btn-success" id="send-message">Send Message</button>
+                    <button type="button" class="btn btn-info" id="receive-message">Receive Message</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h3>Results</h3>
+                <div id="pt-results"></div>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let processCountPT = 1;
+        let threadCount = 1;
+
+        document.getElementById('add-process-pt').addEventListener('click', function() {
+            processCountPT++;
+            const processesDiv = document.getElementById('processes');
+            const newProcess = document.createElement('div');
+            newProcess.className = 'process-input mb-3';
+            newProcess.innerHTML = `
+                <h6>Process ${processCountPT}</h6>
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">PID</label>
+                        <input type="text" class="form-control" name="pid" value="P${processCountPT}">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Arrival Time</label>
+                        <input type="number" class="form-control" name="arrival_time" value="0">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Burst Time</label>
+                        <input type="number" class="form-control" name="burst_time" value="10">
+                    </div>
+                </div>
+            `;
+            processesDiv.appendChild(newProcess);
+        });
+
+        document.getElementById('simulate-processes').addEventListener('click', function() {
+            const processes = [];
+            const processInputs = document.querySelectorAll('#processes .process-input');
+            processInputs.forEach(input => {
+                const pid = input.querySelector('[name="pid"]').value;
+                const arrival_time = parseInt(input.querySelector('[name="arrival_time"]').value);
+                const burst_time = parseInt(input.querySelector('[name="burst_time"]').value);
+                processes.push({ pid, arrival_time, burst_time });
+            });
+
+            const max_time = parseInt(document.getElementById('max-time').value);
+
+            fetch('/processes_threads/simulate_processes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ processes, max_time })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayPTResults('Process Simulation', result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('add-thread').addEventListener('click', function() {
+            threadCount++;
+            const threadsDiv = document.getElementById('threads');
+            const newThread = document.createElement('div');
+            newThread.className = 'thread-input mb-3';
+            newThread.innerHTML = `
+                <h6>Thread ${threadCount}</h6>
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">TID</label>
+                        <input type="text" class="form-control" name="tid" value="T${threadCount}">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">PID</label>
+                        <input type="text" class="form-control" name="pid" value="P1">
+                    </div>
+                </div>
+            `;
+            threadsDiv.appendChild(newThread);
+        });
+
+        document.getElementById('simulate-threads').addEventListener('click', function() {
+            const model = document.getElementById('thread-model').value;
+            const threads = [];
+            const threadInputs = document.querySelectorAll('#threads .thread-input');
+            threadInputs.forEach(input => {
+                const tid = input.querySelector('[name="tid"]').value;
+                const pid = input.querySelector('[name="pid"]').value;
+                threads.push({ tid, pid });
+            });
+
+            fetch('/processes_threads/simulate_threads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ threads, model })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayPTResults('Thread Simulation', result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('send-message').addEventListener('click', function() {
+            const from_pid = document.getElementById('from-pid').value;
+            const to_pid = document.getElementById('to-pid').value;
+            const message = document.getElementById('ipc-message').value;
+
+            fetch('/processes_threads/ipc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ operation: 'send', from_pid, to_pid, message })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('pt-results').innerHTML = '<p>Message sent successfully</p>';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('receive-message').addEventListener('click', function() {
+            const to_pid = document.getElementById('to-pid').value;
+
+            fetch('/processes_threads/ipc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ operation: 'receive', to_pid })
+            })
+            .then(response => response.json())
+            .then(result => {
+                const msg = result.message;
+                if (msg) {
+                    document.getElementById('pt-results').innerHTML = `<p>Received: "${msg[1]}" from ${msg[0]}</p>`;
+                } else {
+                    document.getElementById('pt-results').innerHTML = '<p>No messages</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        function displayPTResults(title, result) {
+            let html = `<h4>${title}</h4>`;
+            if (result.timeline) {
+                html += '<h5>Timeline:</h5><ul>';
+                result.timeline.forEach(entry => {
+                    html += `<li>Time ${entry[0]}: ${entry[1]} -> ${entry[2]}</li>`;
+                });
+                html += '</ul>';
+            }
+            html += `<p>Total time: ${result.total_time || 'N/A'}</p>`;
+            document.getElementById('pt-results').innerHTML = html;
+        }
+    </script>
+</body>
+</html>

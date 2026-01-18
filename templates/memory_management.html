@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .sidebar .nav-link {
+            color: #495057;
+        }
+        .sidebar .nav-link:hover {
+            color: #007bff;
+        }
+        .main {
+            margin-left: 250px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <h3>OS Concepts</h3>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/cpu_scheduling">CPU Scheduling</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/deadlock">Deadlock Handling</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/resource_allocation">Resource Allocation</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/memory_management">Memory Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/file_systems">File Systems</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/synchronization">Process Synchronization</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/io_management">I/O Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/processes_threads">Processes and Threads</a>
+            </li>
+        </ul>
+    </nav>
+    <main class="main">
+        <h1>Memory Management</h1>
+        <div class="row">
+            <div class="col-md-12">
+                <ul class="nav nav-tabs" id="memoryTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="allocation-tab" data-bs-toggle="tab" data-bs-target="#allocation" type="button" role="tab">Memory Allocation</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="replacement-tab" data-bs-toggle="tab" data-bs-target="#replacement" type="button" role="tab">Page Replacement</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="virtual-tab" data-bs-toggle="tab" data-bs-target="#virtual" type="button" role="tab">Virtual Memory</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="segmentation-tab" data-bs-toggle="tab" data-bs-target="#segmentation" type="button" role="tab">Segmentation</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="memoryTabsContent">
+                    <div class="tab-pane fade show active" id="allocation" role="tabpanel">
+                        <h3>Memory Allocation Strategies</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <form id="allocation-form">
+                                    <div class="mb-3">
+                                        <label for="alloc-algorithm" class="form-label">Algorithm</label>
+                                        <select class="form-select" id="alloc-algorithm">
+                                            <option value="first_fit">First Fit</option>
+                                            <option value="best_fit">Best Fit</option>
+                                            <option value="worst_fit">Worst Fit</option>
+                                        </select>
+                                    </div>
+                                    <div id="memory-blocks">
+                                        <h5>Memory Blocks</h5>
+                                        <div class="block-input mb-3">
+                                            <div class="row">
+                                                <div class="col">
+                                                    <label class="form-label">Start Address</label>
+                                                    <input type="number" class="form-control" name="start" value="0">
+                                                </div>
+                                                <div class="col">
+                                                    <label class="form-label">Size</label>
+                                                    <input type="number" class="form-control" name="size" value="100">
+                                                </div>
+                                                <div class="col">
+                                                    <label class="form-label">Process ID (leave empty if free)</label>
+                                                    <input type="text" class="form-control" name="process_id" value="">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-secondary" id="add-block">Add Block</button>
+                                    <div class="mb-3">
+                                        <label for="process-size" class="form-label">Process Size</label>
+                                        <input type="number" class="form-control" id="process-size" value="50">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="process-id-alloc" class="form-label">Process ID</label>
+                                        <input type="text" class="form-control" id="process-id-alloc" value="P1">
+                                    </div>
+                                    <button type="button" class="btn btn-primary" id="allocate-memory">Allocate Memory</button>
+                                    <button type="button" class="btn btn-warning" id="deallocate-memory">Deallocate Process</button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>Memory State</h4>
+                                <div id="memory-state"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="replacement" role="tabpanel">
+                        <h3>Page Replacement Algorithms</h3>
+                        <form id="replacement-form">
+                            <div class="mb-3">
+                                <label for="replacement-algorithm" class="form-label">Algorithm</label>
+                                <select class="form-select" id="replacement-algorithm">
+                                    <option value="fifo">FIFO</option>
+                                    <option value="lru">LRU</option>
+                                    <option value="optimal">Optimal</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="page-sequence" class="form-label">Page Reference Sequence (comma-separated)</label>
+                                <input type="text" class="form-control" id="page-sequence" value="7,0,1,2,0,3,0,4,2,3,0,3,2,1,2,0,1,7,0,1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="num-frames" class="form-label">Number of Frames</label>
+                                <input type="number" class="form-control" id="num-frames" value="3">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="run-replacement">Run Page Replacement</button>
+                        </form>
+                        <div id="replacement-results" class="mt-3"></div>
+                    </div>
+                    <div class="tab-pane fade" id="virtual" role="tabpanel">
+                        <h3>Virtual Memory</h3>
+                        <form id="virtual-form">
+                            <div class="mb-3">
+                                <label for="num-frames-vm" class="form-label">Number of Frames</label>
+                                <input type="number" class="form-control" id="num-frames-vm" value="4">
+                            </div>
+                            <div class="mb-3">
+                                <label for="page-size" class="form-label">Page Size</label>
+                                <input type="number" class="form-control" id="page-size" value="4096">
+                            </div>
+                            <div class="mb-3">
+                                <label for="virtual-address" class="form-label">Virtual Address</label>
+                                <input type="number" class="form-control" id="virtual-address" value="8192">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="translate-address">Translate Address</button>
+                            <div class="mb-3">
+                                <label for="page-number" class="form-label">Page Number to Allocate</label>
+                                <input type="number" class="form-control" id="page-number" value="0">
+                            </div>
+                            <button type="button" class="btn btn-success" id="allocate-page">Allocate Page</button>
+                        </form>
+                        <div id="virtual-results" class="mt-3"></div>
+                    </div>
+                    <div class="tab-pane fade" id="segmentation" role="tabpanel">
+                        <h3>Segmentation</h3>
+                        <form id="segmentation-form">
+                            <div class="mb-3">
+                                <label for="segment-number" class="form-label">Segment Number</label>
+                                <input type="number" class="form-control" id="segment-number" value="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="offset" class="form-label">Offset</label>
+                                <input type="number" class="form-control" id="offset" value="100">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="translate-segment">Translate Address</button>
+                            <div class="mb-3">
+                                <label for="segment-size" class="form-label">Segment Size</label>
+                                <input type="number" class="form-control" id="segment-size" value="1024">
+                            </div>
+                            <div class="mb-3">
+                                <label for="base-address" class="form-label">Base Address</label>
+                                <input type="number" class="form-control" id="base-address" value="0">
+                            </div>
+                            <button type="button" class="btn btn-success" id="allocate-segment">Allocate Segment</button>
+                        </form>
+                        <div id="segmentation-results" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Memory Allocation
+        let blockCount = 1;
+        let currentBlocks = [
+            { start: 0, size: 100, process_id: null, is_free: true }
+        ];
+
+        document.getElementById('add-block').addEventListener('click', function() {
+            blockCount++;
+            const blocksDiv = document.getElementById('memory-blocks');
+            const newBlock = document.createElement('div');
+            newBlock.className = 'block-input mb-3';
+            newBlock.innerHTML = `
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">Start Address</label>
+                        <input type="number" class="form-control" name="start" value="100">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Size</label>
+                        <input type="number" class="form-control" name="size" value="50">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Process ID</label>
+                        <input type="text" class="form-control" name="process_id" value="">
+                    </div>
+                </div>
+            `;
+            blocksDiv.appendChild(newBlock);
+        });
+
+        function updateMemoryState(blocks) {
+            currentBlocks = blocks;
+            let html = '<table class="table"><thead><tr><th>Start</th><th>Size</th><th>Process</th><th>Status</th></tr></thead><tbody>';
+            blocks.forEach(block => {
+                html += `<tr><td>${block.start}</td><td>${block.size}</td><td>${block.process_id || '-'}</td><td>${block.is_free ? 'Free' : 'Allocated'}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('memory-state').innerHTML = html;
+        }
+
+        updateMemoryState(currentBlocks);
+
+        document.getElementById('allocate-memory').addEventListener('click', function() {
+            const algorithm = document.getElementById('alloc-algorithm').value;
+            const processSize = parseInt(document.getElementById('process-size').value);
+            const processId = document.getElementById('process-id-alloc').value;
+
+            fetch('/memory_management/allocate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    algorithm,
+                    blocks: currentBlocks,
+                    process_size: processSize,
+                    process_id: processId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                updateMemoryState(result.blocks);
+                if (result.allocated_address !== null) {
+                    alert(`Memory allocated at address ${result.allocated_address}`);
+                } else {
+                    alert('Allocation failed - no suitable block found');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('deallocate-memory').addEventListener('click', function() {
+            const processId = document.getElementById('process-id-alloc').value;
+
+            fetch('/memory_management/deallocate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    blocks: currentBlocks,
+                    process_id: processId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                updateMemoryState(result.blocks);
+                alert(result.deallocated ? 'Process deallocated' : 'Process not found');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        // Page Replacement
+        document.getElementById('run-replacement').addEventListener('click', function() {
+            const algorithm = document.getElementById('replacement-algorithm').value;
+            const pageSequence = document.getElementById('page-sequence').value.split(',').map(x => parseInt(x.trim()));
+            const numFrames = parseInt(document.getElementById('num-frames').value);
+
+            fetch('/memory_management/page_replacement', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    algorithm,
+                    page_sequence: pageSequence,
+                    num_frames: numFrames
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayReplacementResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('replacement-results').innerHTML = '<p class="text-danger">Error running page replacement.</p>';
+            });
+        });
+
+        function displayReplacementResults(result) {
+            let html = '<h4>Page Replacement Results</h4>';
+            html += `<p><strong>Page Faults:</strong> ${result.page_faults}</p>`;
+            html += `<p><strong>Total References:</strong> ${result.total_pages}</p>`;
+            html += `<p><strong>Fault Rate:</strong> ${(result.fault_rate * 100).toFixed(2)}%</p>`;
+            html += '<h5>Step by Step:</h5><table class="table"><thead><tr><th>Reference</th><th>Frames</th><th>Fault</th><th>Replaced</th></tr></thead><tbody>';
+            result.history.forEach(step => {
+                html += `<tr><td>${step.page}</td><td>${step.frames.join(', ')}</td><td>${step.fault ? 'Yes' : 'No'}</td><td>${step.replaced || '-'}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('replacement-results').innerHTML = html;
+        }
+
+        // Virtual Memory
+        let vmSimulator = null;
+
+        document.getElementById('translate-address').addEventListener('click', function() {
+            const numFrames = parseInt(document.getElementById('num-frames-vm').value);
+            const pageSize = parseInt(document.getElementById('page-size').value);
+            const virtualAddress = parseInt(document.getElementById('virtual-address').value);
+
+            fetch('/memory_management/virtual_memory', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'translate',
+                    num_frames: numFrames,
+                    page_size: pageSize,
+                    virtual_address: virtualAddress
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('virtual-results').innerHTML = `<p><strong>Physical Address:</strong> ${result.physical_address !== null ? result.physical_address : 'Page Fault'}</p>`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('allocate-page').addEventListener('click', function() {
+            const numFrames = parseInt(document.getElementById('num-frames-vm').value);
+            const pageSize = parseInt(document.getElementById('page-size').value);
+            const pageNumber = parseInt(document.getElementById('page-number').value);
+
+            fetch('/memory_management/virtual_memory', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'allocate',
+                    num_frames: numFrames,
+                    page_size: pageSize,
+                    page_number: pageNumber
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('virtual-results').innerHTML = `<p><strong>Allocation:</strong> ${result.allocated ? 'Success' : 'Failed'}</p>`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        // Segmentation
+        document.getElementById('translate-segment').addEventListener('click', function() {
+            const segmentNumber = parseInt(document.getElementById('segment-number').value);
+            const offset = parseInt(document.getElementById('offset').value);
+
+            fetch('/memory_management/segmentation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'translate',
+                    segment_number: segmentNumber,
+                    offset: offset
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('segmentation-results').innerHTML = `<p><strong>Physical Address:</strong> ${result.physical_address !== null ? result.physical_address : 'Invalid'}</p>`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('allocate-segment').addEventListener('click', function() {
+            const segmentNumber = parseInt(document.getElementById('segment-number').value);
+            const size = parseInt(document.getElementById('segment-size').value);
+            const baseAddress = parseInt(document.getElementById('base-address').value);
+
+            fetch('/memory_management/segmentation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'allocate',
+                    segment_number: segmentNumber,
+                    size: size,
+                    base_address: baseAddress
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('segmentation-results').innerHTML = `<p><strong>Allocation:</strong> ${result.allocated ? 'Success' : 'Failed'}</p>`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>

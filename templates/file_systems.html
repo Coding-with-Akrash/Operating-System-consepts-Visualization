@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Systems</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .sidebar .nav-link {
+            color: #495057;
+        }
+        .sidebar .nav-link:hover {
+            color: #007bff;
+        }
+        .main {
+            margin-left: 250px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <h3>OS Concepts</h3>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/cpu_scheduling">CPU Scheduling</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/deadlock">Deadlock Handling</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/resource_allocation">Resource Allocation</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/memory_management">Memory Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/file_systems">File Systems</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/synchronization">Process Synchronization</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/io_management">I/O Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/processes_threads">Processes and Threads</a>
+            </li>
+        </ul>
+    </nav>
+    <main class="main">
+        <h1>File Systems</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <h3>File Operations</h3>
+                <form id="file-form">
+                    <div class="mb-3">
+                        <label for="allocation-method" class="form-label">Allocation Method</label>
+                        <select class="form-select" id="allocation-method">
+                            <option value="contiguous">Contiguous</option>
+                            <option value="linked">Linked</option>
+                            <option value="indexed">Indexed</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="total-blocks" class="form-label">Total Blocks</label>
+                        <input type="number" class="form-control" id="total-blocks" value="100">
+                    </div>
+                    <div class="mb-3">
+                        <label for="file-path" class="form-label">Directory Path</label>
+                        <input type="text" class="form-control" id="file-path" value="/">
+                    </div>
+                    <div class="mb-3">
+                        <label for="file-name" class="form-label">File Name</label>
+                        <input type="text" class="form-control" id="file-name" value="file1.txt">
+                    </div>
+                    <div class="mb-3">
+                        <label for="file-size" class="form-label">File Size</label>
+                        <input type="number" class="form-control" id="file-size" value="2048">
+                    </div>
+                    <button type="button" class="btn btn-primary" id="create-file">Create File</button>
+                    <button type="button" class="btn btn-danger" id="delete-file">Delete File</button>
+                </form>
+                <h3>Directory Operations</h3>
+                <form id="dir-form">
+                    <div class="mb-3">
+                        <label for="dir-path" class="form-label">Parent Directory Path</label>
+                        <input type="text" class="form-control" id="dir-path" value="/">
+                    </div>
+                    <div class="mb-3">
+                        <label for="dir-name" class="form-label">Directory Name</label>
+                        <input type="text" class="form-control" id="dir-name" value="subdir">
+                    </div>
+                    <button type="button" class="btn btn-success" id="create-directory">Create Directory</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h3>Results</h3>
+                <div id="results"></div>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('create-file').addEventListener('click', function() {
+            const allocationMethod = document.getElementById('allocation-method').value;
+            const totalBlocks = parseInt(document.getElementById('total-blocks').value);
+            const path = document.getElementById('file-path').value;
+            const name = document.getElementById('file-name').value;
+            const size = parseInt(document.getElementById('file-size').value);
+
+            fetch('/file_systems/create_file', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    path,
+                    name,
+                    size,
+                    allocation_method: allocationMethod,
+                    total_blocks: totalBlocks
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayResult('Create File', result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('delete-file').addEventListener('click', function() {
+            const allocationMethod = document.getElementById('allocation-method').value;
+            const totalBlocks = parseInt(document.getElementById('total-blocks').value);
+            const path = document.getElementById('file-path').value;
+            const name = document.getElementById('file-name').value;
+
+            fetch('/file_systems/delete_file', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    path,
+                    name,
+                    allocation_method: allocationMethod,
+                    total_blocks: totalBlocks
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayResult('Delete File', result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('create-directory').addEventListener('click', function() {
+            const totalBlocks = parseInt(document.getElementById('total-blocks').value);
+            const path = document.getElementById('dir-path').value;
+            const name = document.getElementById('dir-name').value;
+
+            fetch('/file_systems/create_directory', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    path,
+                    name,
+                    total_blocks: totalBlocks
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayResult('Create Directory', result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        function displayResult(operation, result) {
+            let html = `<h4>${operation} Result</h4>`;
+            if (result.success !== undefined) {
+                html += `<p><strong>Success:</strong> ${result.success ? 'Yes' : 'No'}</p>`;
+            }
+            if (result.disk_usage) {
+                html += `<p><strong>Disk Usage:</strong> ${result.disk_usage.allocated_blocks}/${result.disk_usage.total_blocks} blocks (${result.disk_usage.usage_percentage.toFixed(2)}%)</p>`;
+            }
+            document.getElementById('results').innerHTML = html;
+        }
+    </script>
+</body>
+</html>

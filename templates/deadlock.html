@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadlock Handling</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .sidebar .nav-link {
+            color: #495057;
+        }
+        .sidebar .nav-link:hover {
+            color: #007bff;
+        }
+        .main {
+            margin-left: 250px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <h3>OS Concepts</h3>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/cpu_scheduling">CPU Scheduling</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/deadlock">Deadlock Handling</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/resource_allocation">Resource Allocation</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/memory_management">Memory Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/file_systems">File Systems</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/synchronization">Process Synchronization</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/io_management">I/O Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/processes_threads">Processes and Threads</a>
+            </li>
+        </ul>
+    </nav>
+    <main class="main">
+        <h1>Deadlock Handling</h1>
+        <div class="row">
+            <div class="col-md-12">
+                <ul class="nav nav-tabs" id="deadlockTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="bankers-tab" data-bs-toggle="tab" data-bs-target="#bankers" type="button" role="tab">Banker's Algorithm</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="detect-tab" data-bs-toggle="tab" data-bs-target="#detect" type="button" role="tab">Deadlock Detection</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="request-tab" data-bs-toggle="tab" data-bs-target="#request" type="button" role="tab">Resource Request</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="deadlockTabsContent">
+                    <div class="tab-pane fade show active" id="bankers" role="tabpanel">
+                        <h3>Banker's Algorithm</h3>
+                        <form id="bankers-form">
+                            <div id="resources-bankers">
+                            <h5>Resources</h5>
+                            <div class="resource-input mb-3">
+                            <div class="row">
+                            <div class="col">
+                            <label class="form-label">Resource ID</label>
+                            <input type="text" class="form-control" name="rid" value="R1">
+                            </div>
+                            <div class="col">
+                            <label class="form-label">Total Instances</label>
+                            <input type="number" class="form-control" name="total" value="10">
+                            </div>
+                            </div>
+                            </div>
+                            <div class="resource-input mb-3">
+                            <div class="row">
+                            <div class="col">
+                            <label class="form-label">Resource ID</label>
+                            <input type="text" class="form-control" name="rid" value="R2">
+                            </div>
+                            <div class="col">
+                            <label class="form-label">Total Instances</label>
+                            <input type="number" class="form-control" name="total" value="5">
+                            </div>
+                            </div>
+                            </div>
+                            <div class="resource-input mb-3">
+                            <div class="row">
+                            <div class="col">
+                            <label class="form-label">Resource ID</label>
+                            <input type="text" class="form-control" name="rid" value="R3">
+                            </div>
+                            <div class="col">
+                            <label class="form-label">Total Instances</label>
+                            <input type="number" class="form-control" name="total" value="7">
+                            </div>
+                            </div>
+                            </div>
+                            </div>
+                            <button type="button" class="btn btn-secondary" id="add-resource-bankers">Add Resource</button>
+                            <div id="processes-bankers">
+                                <h5>Processes</h5>
+                                <div class="process-input-bankers mb-3">
+                                    <h6>Process 1</h6>
+                                    <div class="row">
+                                        <div class="col">
+                                            <label class="form-label">PID</label>
+                                            <input type="text" class="form-control" name="pid" value="P1">
+                                        </div>
+                                        <div class="col">
+                                            <label class="form-label">Max Resources (comma-separated)</label>
+                                            <input type="text" class="form-control" name="max_resources" value="5,4,3">
+                                        </div>
+                                        <div class="col">
+                                            <label class="form-label">Allocated Resources (comma-separated)</label>
+                                            <input type="text" class="form-control" name="allocated_resources" value="0,1,0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-secondary" id="add-process-bankers">Add Process</button>
+                            <button type="button" class="btn btn-primary" id="run-bankers">Run Banker's Algorithm</button>
+                        </form>
+                        <div id="bankers-results" class="mt-3"></div>
+                    </div>
+                    <div class="tab-pane fade" id="detect" role="tabpanel">
+                        <h3>Deadlock Detection</h3>
+                        <form id="detect-form">
+                            <div class="mb-3">
+                                <label for="detect-method" class="form-label">Detection Method</label>
+                                <select class="form-select" id="detect-method">
+                                    <option value="wait_for_graph">Wait-for Graph</option>
+                                    <option value="resource_allocation">Resource Allocation Graph</option>
+                                </select>
+                            </div>
+                            <div id="wait-for-input" style="display: block;">
+                                <h5>Wait-for Graph</h5>
+                                <div id="wait-for-edges">
+                                    <div class="edge-input mb-3">
+                                        <div class="row">
+                                            <div class="col">
+                                                <label class="form-label">Process</label>
+                                                <input type="text" class="form-control" name="process" value="P1">
+                                            </div>
+                                            <div class="col">
+                                                <label class="form-label">Waits for (comma-separated)</label>
+                                                <input type="text" class="form-control" name="waits_for" value="P2">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary" id="add-edge">Add Edge</button>
+                            </div>
+                            <div id="resource-alloc-input" style="display: none;">
+                                <h5>Resource Allocation</h5>
+                                <div id="resources-detect">
+                                    <div class="resource-input mb-3">
+                                        <div class="row">
+                                            <div class="col">
+                                                <label class="form-label">Resource ID</label>
+                                                <input type="text" class="form-control" name="rid" value="R1">
+                                            </div>
+                                            <div class="col">
+                                                <label class="form-label">Total Instances</label>
+                                                <input type="number" class="form-control" name="total" value="10">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary" id="add-resource-detect">Add Resource</button>
+                                <div id="processes-detect">
+                                    <div class="process-input-detect mb-3">
+                                        <h6>Process 1</h6>
+                                        <div class="row">
+                                            <div class="col">
+                                                <label class="form-label">PID</label>
+                                                <input type="text" class="form-control" name="pid" value="P1">
+                                            </div>
+                                            <div class="col">
+                                                <label class="form-label">Max Resources</label>
+                                                <input type="text" class="form-control" name="max_resources" value="5,4,3">
+                                            </div>
+                                            <div class="col">
+                                                <label class="form-label">Allocated Resources</label>
+                                                <input type="text" class="form-control" name="allocated_resources" value="0,1,0">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary" id="add-process-detect">Add Process</button>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="run-detect">Detect Deadlock</button>
+                        </form>
+                        <div id="detect-results" class="mt-3"></div>
+                    </div>
+                    <div class="tab-pane fade" id="request" role="tabpanel">
+                        <h3>Simulate Resource Request</h3>
+                        <form id="request-form">
+                            <div id="resources-request">
+                            <h5>Resources</h5>
+                            <div class="resource-input mb-3">
+                            <div class="row">
+                            <div class="col">
+                            <label class="form-label">Resource ID</label>
+                            <input type="text" class="form-control" name="rid" value="R1">
+                            </div>
+                            <div class="col">
+                            <label class="form-label">Total Instances</label>
+                            <input type="number" class="form-control" name="total" value="10">
+                            </div>
+                            </div>
+                            </div>
+                            <div class="resource-input mb-3">
+                            <div class="row">
+                            <div class="col">
+                            <label class="form-label">Resource ID</label>
+                            <input type="text" class="form-control" name="rid" value="R2">
+                            </div>
+                            <div class="col">
+                            <label class="form-label">Total Instances</label>
+                            <input type="number" class="form-control" name="total" value="5">
+                            </div>
+                            </div>
+                            </div>
+                            <div class="resource-input mb-3">
+                            <div class="row">
+                            <div class="col">
+                            <label class="form-label">Resource ID</label>
+                            <input type="text" class="form-control" name="rid" value="R3">
+                            </div>
+                            <div class="col">
+                            <label class="form-label">Total Instances</label>
+                            <input type="number" class="form-control" name="total" value="7">
+                            </div>
+                            </div>
+                            </div>
+                            </div>
+                            <button type="button" class="btn btn-secondary" id="add-resource-request">Add Resource</button>
+                            <div id="processes-request">
+                                <h5>Processes</h5>
+                                <div class="process-input-request mb-3">
+                                    <h6>Process 1</h6>
+                                    <div class="row">
+                                        <div class="col">
+                                            <label class="form-label">PID</label>
+                                            <input type="text" class="form-control" name="pid" value="P1">
+                                        </div>
+                                        <div class="col">
+                                            <label class="form-label">Max Resources</label>
+                                            <input type="text" class="form-control" name="max_resources" value="5,4,3">
+                                        </div>
+                                        <div class="col">
+                                            <label class="form-label">Allocated Resources</label>
+                                            <input type="text" class="form-control" name="allocated_resources" value="0,1,0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-secondary" id="add-process-request">Add Process</button>
+                            <div class="mb-3">
+                                <label for="request-process" class="form-label">Requesting Process</label>
+                                <input type="text" class="form-control" id="request-process" value="P1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="request-resources" class="form-label">Request Resources (comma-separated)</label>
+                                <input type="text" class="form-control" id="request-resources" value="1,0,2">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="run-request">Simulate Request</button>
+                        </form>
+                        <div id="request-results" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Banker's Algorithm
+        let resourceCountBankers = 3;
+        let processCountBankers = 1;
+
+        document.getElementById('add-resource-bankers').addEventListener('click', function() {
+            resourceCountBankers++;
+            const resourcesDiv = document.getElementById('resources-bankers');
+            const newResource = document.createElement('div');
+            newResource.className = 'resource-input mb-3';
+            newResource.innerHTML = `
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">Resource ID</label>
+                        <input type="text" class="form-control" name="rid" value="R${resourceCountBankers}">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Total Instances</label>
+                        <input type="number" class="form-control" name="total" value="10">
+                    </div>
+                </div>
+            `;
+            resourcesDiv.appendChild(newResource);
+        });
+
+        document.getElementById('add-process-bankers').addEventListener('click', function() {
+            processCountBankers++;
+            const processesDiv = document.getElementById('processes-bankers');
+            const newProcess = document.createElement('div');
+            newProcess.className = 'process-input-bankers mb-3';
+            newProcess.innerHTML = `
+                <h6>Process ${processCountBankers}</h6>
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">PID</label>
+                        <input type="text" class="form-control" name="pid" value="P${processCountBankers}">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Max Resources</label>
+                        <input type="text" class="form-control" name="max_resources" value="5,4,3">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Allocated Resources</label>
+                        <input type="text" class="form-control" name="allocated_resources" value="0,1,0">
+                    </div>
+                </div>
+            `;
+            processesDiv.appendChild(newProcess);
+        });
+
+        document.getElementById('run-bankers').addEventListener('click', function() {
+            const resources = [];
+            const resourceInputs = document.querySelectorAll('#resources-bankers .resource-input');
+            resourceInputs.forEach(input => {
+                const rid = input.querySelector('[name="rid"]').value;
+                const total = parseInt(input.querySelector('[name="total"]').value);
+                resources.push({ rid, total_instances: total });
+            });
+
+            const processes = [];
+            const processInputs = document.querySelectorAll('#processes-bankers .process-input-bankers');
+            processInputs.forEach(input => {
+                const pid = input.querySelector('[name="pid"]').value;
+                const max_resources = input.querySelector('[name="max_resources"]').value.split(',').map(x => parseInt(x.trim()));
+                const allocated_resources = input.querySelector('[name="allocated_resources"]').value.split(',').map(x => parseInt(x.trim()));
+                processes.push({ pid, max_resources, allocated_resources });
+            });
+
+            fetch('/deadlock/bankers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ processes, resources })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayBankersResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('bankers-results').innerHTML = "<p class=\"text-danger\">Error running Bankers algorithm.</p>";
+            });
+        });
+
+        function displayBankersResults(result) {
+            let html = "<h4>Bankers Algorithm Results</h4>";
+            html += `<p><strong>Safe State:</strong> ${result.safe ? 'Yes' : 'No'}</p>`;
+            html += `<p><strong>Message:</strong> ${result.message}</p>`;
+            if (result.safe_sequence) {
+                html += `<p><strong>Safe Sequence:</strong> ${result.safe_sequence.join(' -> ')}</p>`;
+            }
+            document.getElementById('bankers-results').innerHTML = html;
+        }
+
+        // Deadlock Detection
+        let edgeCount = 1;
+        let resourceCountDetect = 1;
+        let processCountDetect = 1;
+
+        document.getElementById('detect-method').addEventListener('change', function() {
+            const waitForInput = document.getElementById('wait-for-input');
+            const resourceAllocInput = document.getElementById('resource-alloc-input');
+            if (this.value === 'wait_for_graph') {
+                waitForInput.style.display = 'block';
+                resourceAllocInput.style.display = 'none';
+            } else {
+                waitForInput.style.display = 'none';
+                resourceAllocInput.style.display = 'block';
+            }
+        });
+
+        document.getElementById('add-edge').addEventListener('click', function() {
+            edgeCount++;
+            const edgesDiv = document.getElementById('wait-for-edges');
+            const newEdge = document.createElement('div');
+            newEdge.className = 'edge-input mb-3';
+            newEdge.innerHTML = `
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">Process</label>
+                        <input type="text" class="form-control" name="process" value="P${edgeCount}">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Waits for</label>
+                        <input type="text" class="form-control" name="waits_for" value="P${edgeCount + 1}">
+                    </div>
+                </div>
+            `;
+            edgesDiv.appendChild(newEdge);
+        });
+
+        document.getElementById('add-resource-detect').addEventListener('click', function() {
+            resourceCountDetect++;
+            const resourcesDiv = document.getElementById('resources-detect');
+            const newResource = document.createElement('div');
+            newResource.className = 'resource-input mb-3';
+            newResource.innerHTML = `
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">Resource ID</label>
+                        <input type="text" class="form-control" name="rid" value="R${resourceCountDetect}">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Total Instances</label>
+                        <input type="number" class="form-control" name="total" value="10">
+                    </div>
+                </div>
+            `;
+            resourcesDiv.appendChild(newResource);
+        });
+
+        document.getElementById('add-process-detect').addEventListener('click', function() {
+            processCountDetect++;
+            const processesDiv = document.getElementById('processes-detect');
+            const newProcess = document.createElement('div');
+            newProcess.className = 'process-input-detect mb-3';
+            newProcess.innerHTML = `
+                <h6>Process ${processCountDetect}</h6>
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">PID</label>
+                        <input type="text" class="form-control" name="pid" value="P${processCountDetect}">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Max Resources</label>
+                        <input type="text" class="form-control" name="max_resources" value="5,4,3">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Allocated Resources</label>
+                        <input type="text" class="form-control" name="allocated_resources" value="0,1,0">
+                    </div>
+                </div>
+            `;
+            processesDiv.appendChild(newProcess);
+        });
+
+        document.getElementById('run-detect').addEventListener('click', function() {
+            const method = document.getElementById('detect-method').value;
+            let data = { method };
+
+            if (method === 'wait_for_graph') {
+                const waitForGraph = {};
+                const edgeInputs = document.querySelectorAll('#wait-for-edges .edge-input');
+                edgeInputs.forEach(input => {
+                    const process = input.querySelector('[name="process"]').value;
+                    const waitsFor = input.querySelector('[name="waits_for"]').value.split(',').map(x => x.trim());
+                    waitForGraph[process] = waitsFor;
+                });
+                data.wait_for_graph = waitForGraph;
+            } else {
+                const resources = [];
+                const resourceInputs = document.querySelectorAll('#resources-detect .resource-input');
+                resourceInputs.forEach(input => {
+                    const rid = input.querySelector('[name="rid"]').value;
+                    const total = parseInt(input.querySelector('[name="total"]').value);
+                    resources.push({ rid, total_instances: total });
+                });
+
+                const processes = [];
+                const processInputs = document.querySelectorAll('#processes-detect .process-input-detect');
+                processInputs.forEach(input => {
+                    const pid = input.querySelector('[name="pid"]').value;
+                    const max_resources = input.querySelector('[name="max_resources"]').value.split(',').map(x => parseInt(x.trim()));
+                    const allocated_resources = input.querySelector('[name="allocated_resources"]').value.split(',').map(x => parseInt(x.trim()));
+                    processes.push({ pid, max_resources, allocated_resources });
+                });
+                data.resources = resources;
+                data.processes = processes;
+            }
+
+            fetch('/deadlock/detect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayDetectResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('detect-results').innerHTML = '<p class="text-danger">Error detecting deadlock.</p>';
+            });
+        });
+
+        function displayDetectResults(result) {
+            let html = '<h4>Deadlock Detection Results</h4>';
+            html += `<p><strong>Deadlock Detected:</strong> ${result.deadlock_detected ? 'Yes' : 'No'}</p>`;
+            html += `<p><strong>Message:</strong> ${result.message}</p>`;
+            if (result.deadlocked_processes && result.deadlocked_processes.length > 0) {
+                html += `<p><strong>Deadlocked Processes:</strong> ${result.deadlocked_processes.join(', ')}</p>`;
+            }
+            document.getElementById('detect-results').innerHTML = html;
+        }
+
+        // Resource Request
+        let resourceCountRequest = 3;
+        let processCountRequest = 1;
+
+        document.getElementById('add-resource-request').addEventListener('click', function() {
+            resourceCountRequest++;
+            const resourcesDiv = document.getElementById('resources-request');
+            const newResource = document.createElement('div');
+            newResource.className = 'resource-input mb-3';
+            newResource.innerHTML = `
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">Resource ID</label>
+                        <input type="text" class="form-control" name="rid" value="R${resourceCountRequest}">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Total Instances</label>
+                        <input type="number" class="form-control" name="total" value="10">
+                    </div>
+                </div>
+            `;
+            resourcesDiv.appendChild(newResource);
+        });
+
+        document.getElementById('add-process-request').addEventListener('click', function() {
+            processCountRequest++;
+            const processesDiv = document.getElementById('processes-request');
+            const newProcess = document.createElement('div');
+            newProcess.className = 'process-input-request mb-3';
+            newProcess.innerHTML = `
+                <h6>Process ${processCountRequest}</h6>
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">PID</label>
+                        <input type="text" class="form-control" name="pid" value="P${processCountRequest}">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Max Resources</label>
+                        <input type="text" class="form-control" name="max_resources" value="5,4,3">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Allocated Resources</label>
+                        <input type="text" class="form-control" name="allocated_resources" value="0,1,0">
+                    </div>
+                </div>
+            `;
+            processesDiv.appendChild(newProcess);
+        });
+
+        document.getElementById('run-request').addEventListener('click', function() {
+            const resources = [];
+            const resourceInputs = document.querySelectorAll('#resources-request .resource-input');
+            resourceInputs.forEach(input => {
+                const rid = input.querySelector('[name="rid"]').value;
+                const total = parseInt(input.querySelector('[name="total"]').value);
+                resources.push({ rid, total_instances: total });
+            });
+
+            const processes = [];
+            const processInputs = document.querySelectorAll('#processes-request .process-input-request');
+            processInputs.forEach(input => {
+                const pid = input.querySelector('[name="pid"]').value;
+                const max_resources = input.querySelector('[name="max_resources"]').value.split(',').map(x => parseInt(x.trim()));
+                const allocated_resources = input.querySelector('[name="allocated_resources"]').value.split(',').map(x => parseInt(x.trim()));
+                processes.push({ pid, max_resources, allocated_resources });
+            });
+
+            const processId = document.getElementById('request-process').value;
+            const request = document.getElementById('request-resources').value.split(',').map(x => parseInt(x.trim()));
+
+            fetch('/deadlock/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ processes, resources, process_id: processId, request })
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayRequestResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('request-results').innerHTML = '<p class="text-danger">Error simulating request.</p>';
+            });
+        });
+
+        function displayRequestResults(result) {
+            let html = '<h4>Resource Request Results</h4>';
+            html += `<p><strong>Granted:</strong> ${result.granted ? 'Yes' : 'No'}</p>`;
+            html += `<p><strong>Message:</strong> ${result.message}</p>`;
+            document.getElementById('request-results').innerHTML = html;
+        }
+    </script>
+</body>
+</html>

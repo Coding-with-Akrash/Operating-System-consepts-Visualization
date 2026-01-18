@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU Scheduling</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .sidebar .nav-link {
+            color: #495057;
+        }
+        .sidebar .nav-link:hover {
+            color: #007bff;
+        }
+        .main {
+            margin-left: 250px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <h3>OS Concepts</h3>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/cpu_scheduling">CPU Scheduling</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/deadlock">Deadlock Handling</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/resource_allocation">Resource Allocation</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/memory_management">Memory Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/file_systems">File Systems</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/synchronization">Process Synchronization</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/io_management">I/O Management</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/processes_threads">Processes and Threads</a>
+            </li>
+        </ul>
+    </nav>
+    <main class="main">
+        <h1>CPU Scheduling Algorithms</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Input Processes</h3>
+                <form id="scheduling-form">
+                    <div class="mb-3">
+                        <label for="algorithm" class="form-label">Algorithm</label>
+                        <select class="form-select" id="algorithm" name="algorithm">
+                            <option value="FCFS">First Come First Served (FCFS)</option>
+                            <option value="SJF">Shortest Job First (SJF)</option>
+                            <option value="Round Robin">Round Robin</option>
+                            <option value="Priority">Priority Scheduling</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="time-quantum-group" style="display: none;">
+                        <label for="time-quantum" class="form-label">Time Quantum</label>
+                        <input type="number" class="form-control" id="time-quantum" name="time_quantum" value="2">
+                    </div>
+                    <div id="processes">
+                        <div class="process-input mb-3">
+                            <h5>Process 1</h5>
+                            <div class="row">
+                                <div class="col">
+                                    <label class="form-label">PID</label>
+                                    <input type="text" class="form-control" name="pid" value="P1">
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Arrival Time</label>
+                                    <input type="number" class="form-control" name="arrival" value="0">
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Burst Time</label>
+                                    <input type="number" class="form-control" name="burst" value="5">
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Priority</label>
+                                    <input type="number" class="form-control" name="priority" value="1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="add-process">Add Process</button>
+                    <button type="button" class="btn btn-primary" id="run-scheduling">Run Scheduling</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h3>Results</h3>
+                <div id="results"></div>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let processCount = 1;
+
+        document.getElementById('algorithm').addEventListener('change', function() {
+            const timeQuantumGroup = document.getElementById('time-quantum-group');
+            if (this.value === 'Round Robin') {
+                timeQuantumGroup.style.display = 'block';
+            } else {
+                timeQuantumGroup.style.display = 'none';
+            }
+        });
+
+        document.getElementById('add-process').addEventListener('click', function() {
+            processCount++;
+            const processesDiv = document.getElementById('processes');
+            const newProcess = document.createElement('div');
+            newProcess.className = 'process-input mb-3';
+            newProcess.innerHTML = `
+                <h5>Process ${processCount}</h5>
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">PID</label>
+                        <input type="text" class="form-control" name="pid" value="P${processCount}">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Arrival Time</label>
+                        <input type="number" class="form-control" name="arrival" value="0">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Burst Time</label>
+                        <input type="number" class="form-control" name="burst" value="5">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Priority</label>
+                        <input type="number" class="form-control" name="priority" value="1">
+                    </div>
+                </div>
+            `;
+            processesDiv.appendChild(newProcess);
+        });
+
+        document.getElementById('run-scheduling').addEventListener('click', function() {
+            const form = document.getElementById('scheduling-form');
+            const formData = new FormData(form);
+            const algorithm = formData.get('algorithm');
+            const timeQuantum = formData.get('time_quantum');
+
+            const processes = [];
+            const processInputs = document.querySelectorAll('.process-input');
+            processInputs.forEach(input => {
+                const pid = input.querySelector('[name="pid"]').value;
+                const arrival = parseInt(input.querySelector('[name="arrival"]').value);
+                const burst = parseInt(input.querySelector('[name="burst"]').value);
+                const priority = parseInt(input.querySelector('[name="priority"]').value);
+                processes.push({ pid, arrival, burst, priority });
+            });
+
+            const data = {
+                algorithm,
+                time_quantum: timeQuantum,
+                processes
+            };
+
+            fetch('/cpu_scheduling/run', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('results').innerHTML = '<p class="text-danger">Error running scheduling.</p>';
+            });
+        });
+
+        function displayResults(result) {
+            let html = '<h4>Scheduling Results</h4>';
+            html += '<p><strong>Order:</strong> ' + result.order.join(' -> ') + '</p>';
+            html += '<p><strong>Average Waiting Time:</strong> ' + result.avg_waiting_time.toFixed(2) + '</p>';
+            html += '<p><strong>Average Turnaround Time:</strong> ' + result.avg_turnaround_time.toFixed(2) + '</p>';
+            html += '<table class="table"><thead><tr><th>Process</th><th>Waiting Time</th><th>Turnaround Time</th></tr></thead><tbody>';
+            result.processes.forEach(p => {
+                html += `<tr><td>${p.pid}</td><td>${p.waiting_time}</td><td>${p.turnaround_time}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('results').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
